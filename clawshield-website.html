@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawShield — The Trust Layer for AI Agents</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #060B18;
+  --bg-primary: #0B1120;
+  --bg-card: #111B2E;
+  --bg-card-alt: #162036;
+  --bg-slate: #1E293B;
+  --teal: #00D4AA;
+  --teal-dark: #00A888;
+  --teal-glow: rgba(0, 212, 170, 0.15);
+  --teal-glow-strong: rgba(0, 212, 170, 0.3);
+  --white: #FFFFFF;
+  --light: #CBD5E1;
+  --muted: #64748B;
+  --danger: #EF4444;
+  --amber: #F59E0B;
+  --blue: #3B82F6;
+  --purple: #8B5CF6;
+  --font-h: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-h);
+  background: var(--bg-deep);
+  color: var(--light);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ─── Noise overlay ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Grid background ─── */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Navigation ─── */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(6, 11, 24, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,212,170,0.08);
+  transition: all 0.3s;
+}
+
+nav.scrolled {
+  padding: 0.7rem 2rem;
+  background: rgba(6, 11, 24, 0.95);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.nav-logo svg { width: 28px; height: 28px; }
+
+.nav-logo span {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--teal);
+  letter-spacing: 3px;
+  font-family: var(--font-h);
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover { color: var(--teal); }
+
+.nav-cta {
+  background: var(--teal);
+  color: var(--bg-deep) !important;
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 700 !important;
+  transition: all 0.3s !important;
+}
+
+.nav-cta:hover {
+  background: var(--teal-dark) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px var(--teal-glow-strong);
+}
+
+/* ─── Sections ─── */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 6rem 2rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ─── Hero ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);
+  top: 10%;
+  right: -10%;
+  animation: pulse-glow 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero-glow-2 {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+  bottom: 10%;
+  left: -5%;
+  animation: pulse-glow 8s ease-in-out infinite reverse;
+  pointer-events: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,212,170,0.08);
+  border: 1px solid rgba(0,212,170,0.2);
+  padding: 0.4rem 1rem;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  color: var(--teal);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero h1 {
+  font-size: 3.8rem;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1.05;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  max-width: 500px;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: var(--bg-deep);
+  padding: 0.85rem 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-h);
+}
+
+.btn-primary:hover {
+  background: var(--teal-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--teal-glow-strong);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--teal);
+  padding: 0.85rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1.5px solid rgba(0,212,170,0.3);
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-family: var(--font-h);
+}
+
+.btn-secondary:hover {
+  border-color: var(--teal);
+  background: rgba(0,212,170,0.05);
+  transform: translateY(-2px);
+}
+
+/* Hero right: code terminal mockup */
+.hero-visual {
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.terminal {
+  background: var(--bg-card);
+  border: 1px solid rgba(0,212,170,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--teal-glow);
+}
+
+.terminal-bar {
+  display: flex;
+  gap: 6px;
+  padding: 0.8rem 1rem;
+  background: var(--bg-slate);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red { background: #EF4444; }
+.terminal-dot.yellow { background: #F59E0B; }
+.terminal-dot.green { background: #22C55E; }
+
+.terminal-body {
+  padding: 1.2rem 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.8;
+  min-height: 280px;
+}
+
+.terminal-body .comment { color: var(--muted); }
+.terminal-body .keyword { color: var(--purple); }
+.terminal-body .func { color: var(--blue); }
+.terminal-body .string { color: var(--teal); }
+.terminal-body .var { color: var(--light); }
+.terminal-body .output { color: var(--teal); opacity: 0.8; }
+
+.terminal-line {
+  opacity: 0;
+  animation: typeIn 0.4s ease-out forwards;
+}
+
+@keyframes typeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── Section headers ─── */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.section-label::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: var(--teal);
+}
+
+.section-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 600px;
+  line-height: 1.7;
+}
+
+/* ─── Problem Section ─── */
+.problem-section {
+  background: var(--bg-primary);
+  border-top: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.problem-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s;
+}
+
+.problem-card:hover {
+  border-color: rgba(239,68,68,0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--danger), var(--amber));
+}
+
+.problem-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(239,68,68,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+  font-size: 1.3rem;
+}
+
+.problem-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 0.8rem;
+}
+
+.problem-card p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.problem-stat {
+  margin-top: 3rem;
+  background: var(--bg-slate);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  border: 1px solid rgba(0,212,170,0.1);
+}
+
+.problem-stat p {
+  font-size: 1.05rem;
+  color: var(--teal);
+  font-weight: 600;
+}
+
+/* ─── Features Section ─── */
+.features-section {
+  background: var(--bg-deep);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 2.2rem;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  border-color: rgba(0,212,170,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 50px rgba(0,0,0,0.3), 0 0 30px var(--teal-glow);
+}
+
+.feature-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(0,212,170,0.08);
+  border: 1px solid rgba(0,212,170,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+  font-size: 1.4rem;
+  transition: all 0.3s;
+}
+
+.feature-card:hover .feature-icon {
+  background: rgba(0,212,170,0.15);
+  box-shadow: 0 0 20px var(--teal-glow);
+}
+
+.feature-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--teal);
+  margin-bottom: 0.7rem;
+}
+
+.feature-card p {
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ─── Architecture ─── */
+.arch-section {
+  background: var(--bg-primary);
+  border-top: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.arch-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.arch-box {
+  background: var(--bg-card);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.5rem 1.8rem;
+  text-align: center;
+  min-width: 150px;
+  transition: all 0.3s;
+}
+
+.arch-box.highlight {
+  background: rgba(0,212,170,0.06);
+  border-color: var(--teal);
+  box-shadow: 0 0 30px var(--teal-glow);
+  min-width: 200px;
+}
+
+.arch-box-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.arch-box h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.arch-box p {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+
+.arch-arrow {
+  color: var(--teal);
+  font-size: 1.5rem;
+  padding: 0 1rem;
+  opacity: 0.6;
+}
+
+.arch-components {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.arch-comp {
+  background: var(--bg-card);
+  border: 1px solid rgba(0,212,170,0.1);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  transition: all 0.3s;
+}
+
+.arch-comp:hover {
+  border-color: rgba(0,212,170,0.3);
+  background: var(--bg-card-alt);
+}
+
+.arch-comp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+}
+
+.arch-comp span {
+  font-size: 0.85rem;
+  color: var(--light);
+  font-weight: 500;
+}
+
+.arch-deploy {
+  margin-top: 2.5rem;
+  background: var(--bg-slate);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  border: 1px solid rgba(0,212,170,0.08);
+}
+
+.arch-deploy-item {
+  font-size: 0.85rem;
+  color: var(--light);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.arch-deploy-item::before {
+  content: '✓';
+  color: var(--teal);
+  font-weight: 700;
+}
+
+/* ─── Competitors ─── */
+.comp-section {
+  background: var(--bg-deep);
+}
+
+.comp-table-wrap {
+  margin-top: 3rem;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.comp-table th {
+  background: var(--bg-slate);
+  color: var(--teal);
+  padding: 1rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.comp-table th:first-child {
+  text-align: left;
+  padding-left: 1.5rem;
+}
+
+.comp-table td {
+  padding: 0.9rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  background: var(--bg-card);
+}
+
+.comp-table td:first-child {
+  text-align: left;
+  padding-left: 1.5rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.comp-table tr.highlight-row td {
+  background: rgba(0,212,170,0.06);
+  border-bottom: 1px solid rgba(0,212,170,0.15);
+}
+
+.comp-table tr.highlight-row td:first-child {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.cell-yes { color: var(--teal); font-weight: 600; }
+.cell-partial { color: var(--amber); }
+.cell-no { color: var(--danger); opacity: 0.7; }
+
+/* ─── Pricing ─── */
+.pricing-section {
+  background: var(--bg-primary);
+  border-top: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.pricing-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  position: relative;
+  transition: all 0.4s;
+}
+
+.pricing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 50px rgba(0,0,0,0.3);
+}
+
+.pricing-card.featured {
+  border-color: var(--teal);
+  box-shadow: 0 0 40px var(--teal-glow);
+}
+
+.pricing-card.featured::before {
+  content: 'MOST POPULAR';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--teal);
+  color: var(--bg-deep);
+  padding: 0.3rem 1rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.pricing-tier {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.pricing-price {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+}
+
+.pricing-price span {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.pricing-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.pricing-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 2rem;
+}
+
+.pricing-features li {
+  font-size: 0.88rem;
+  color: var(--light);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pricing-features li::before {
+  content: '✓';
+  color: var(--teal);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.pricing-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  font-family: var(--font-h);
+  cursor: pointer;
+  border: none;
+}
+
+.pricing-btn.primary {
+  background: var(--teal);
+  color: var(--bg-deep);
+}
+
+.pricing-btn.primary:hover {
+  background: var(--teal-dark);
+  box-shadow: 0 6px 25px var(--teal-glow-strong);
+}
+
+.pricing-btn.outline {
+  background: transparent;
+  color: var(--teal);
+  border: 1.5px solid rgba(0,212,170,0.3);
+}
+
+.pricing-btn.outline:hover {
+  border-color: var(--teal);
+  background: rgba(0,212,170,0.05);
+}
+
+.pricing-card.featured .pricing-price { color: var(--teal); }
+
+/* ─── CTA Section ─── */
+.cta-section {
+  background: var(--bg-deep);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section .cta-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cta-content {
+  position: relative;
+  z-index: 2;
+}
+
+.cta-content h2 {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+
+.cta-content p {
+  font-size: 1.15rem;
+  color: var(--muted);
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* ─── Footer ─── */
+footer {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-primary);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 3rem 2rem;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-left svg { width: 22px; height: 22px; }
+
+.footer-left span {
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+}
+
+.footer-right {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .hero-content { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 2.6rem; }
+  .hero-visual { display: none; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .arch-components { grid-template-columns: 1fr 1fr; }
+  .arch-flow { flex-direction: column; }
+  .arch-arrow { transform: rotate(90deg); }
+  .section-title { font-size: 2rem; }
+  .nav-links { display: none; }
+  .footer-content { flex-direction: column; gap: 1rem; text-align: center; }
+}
+
+@media (max-width: 600px) {
+  section { padding: 4rem 1.2rem; }
+  .hero h1 { font-size: 2rem; }
+  .arch-components { grid-template-columns: 1fr; }
+  .arch-deploy { flex-direction: column; gap: 0.8rem; }
+  .cta-content h2 { font-size: 2rem; }
+  .cta-buttons { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- Navigation -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z" fill="none" stroke="#00D4AA" stroke-width="2.5"/>
+      <path d="M16 6L8 10v6c0 5 3.6 9.7 8 11.2V6z" fill="#00D4AA" opacity="0.3"/>
+      <path d="M16 6l8 4v6c0 5-3.6 9.7-8 11.2V6z" fill="#00D4AA" opacity="0.6"/>
+    </svg>
+    <span>CLAWSHIELD</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#comparison">Compare</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#cta" class="nav-cta">Get Started</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div>
+        <div class="hero-badge">Cloudflare for AI Agents</div>
+        <h1>The Trust Layer<br>for <span class="gradient-text">AI Agents</span></h1>
+        <p>Secure every AI agent interaction. Enforce guardrails at runtime. Publish agents safely to production — all through a single gateway.</p>
+        <div class="hero-buttons">
+          <a href="#cta" class="btn-primary">Start Free →</a>
+          <a href="#architecture" class="btn-secondary">See How It Works</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line" style="animation-delay:0.5s"><span class="comment"># Install ClawShield SDK</span></div>
+            <div class="terminal-line" style="animation-delay:0.8s"><span class="var">$ </span><span class="func">pip install</span> <span class="string">clawshield</span></div>
+            <div class="terminal-line" style="animation-delay:1.2s">&nbsp;</div>
+            <div class="terminal-line" style="animation-delay:1.5s"><span class="comment"># Wrap your agent in 2 lines</span></div>
+            <div class="terminal-line" style="animation-delay:1.8s"><span class="keyword">from</span> <span class="string">clawshield</span> <span class="keyword">import</span> <span class="func">Shield</span></div>
+            <div class="terminal-line" style="animation-delay:2.1s">&nbsp;</div>
+            <div class="terminal-line" style="animation-delay:2.4s"><span class="var">shield</span> = <span class="func">Shield</span>(<span class="string">"my-agent"</span>)</div>
+            <div class="terminal-line" style="animation-delay:2.7s"><span class="var">response</span> = shield.<span class="func">run</span>(agent, prompt)</div>
+            <div class="terminal-line" style="animation-delay:3.0s">&nbsp;</div>
+            <div class="terminal-line" style="animation-delay:3.3s"><span class="output">✓ Policy enforced — 3ms</span></div>
+            <div class="terminal-line" style="animation-delay:3.6s"><span class="output">✓ Audit logged — session_0x4f</span></div>
+            <div class="terminal-line" style="animation-delay:3.9s"><span class="output">✓ Response clean — no PII detected</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem -->
+<section class="problem-section" id="problem">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-title">AI Agents Are Powerful.<br>And Completely Unsecured.</h2>
+      <p class="section-subtitle">Agents access files, APIs, databases, and cloud resources — with zero governance, zero audit trails, and zero runtime protection.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="problem-icon">⚠️</div>
+        <h3>Unrestricted Access</h3>
+        <p>Agents interact with files, APIs, databases, and cloud infrastructure with no oversight or access controls in place.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-icon">🔓</div>
+        <h3>Runtime Vulnerabilities</h3>
+        <p>No real-time protection against prompt injection, data exfiltration, or unauthorized tool calls during agent execution.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-icon">🚫</div>
+        <h3>Unsafe Exposure</h3>
+        <p>No standard mechanism to safely publish, rate-limit, or audit agent behavior in production environments.</p>
+      </div>
+    </div>
+    <div class="problem-stat reveal">
+      <p>73% of enterprises plan to deploy AI agents by 2027 — Only 12% have agent-specific security policies</p>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section" id="features">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Core Capabilities</div>
+      <h2 class="section-title">Four Pillars of Trust</h2>
+      <p class="section-subtitle">Comprehensive protection and controlled deployment for every AI agent in your organization.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🛡️</div>
+        <h3>Runtime Protection</h3>
+        <p>Real-time defense against prompt injection, data exfiltration, and unauthorized actions. Every agent call is intercepted, inspected, and validated before execution.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">⚙️</div>
+        <h3>Prompt & Tool Guardrails</h3>
+        <p>Define behavioral boundaries per agent. Control which tools can be called, with what parameters, and under what conditions — all configured through policy-as-code.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔑</div>
+        <h3>Identity & Audit</h3>
+        <p>Full identity verification, session tracking, and immutable audit trails. Know who did what, when, and why. SOC 2, GDPR, and HIPAA ready out of the box.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🚀</div>
+        <h3>One-Click Publishing</h3>
+        <p>Deploy any agent as a secure API or SaaS endpoint with built-in authentication, rate limiting, usage metering, and billing — in minutes, not weeks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="arch-section" id="architecture">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">Inline Gateway Architecture</h2>
+      <p class="section-subtitle">ClawShield operates as a WebSocket/HTTP gateway that intercepts, inspects, and enforces policies on every agent interaction in real time.</p>
+    </div>
+    <div class="arch-flow reveal">
+      <div class="arch-box">
+        <div class="arch-box-icon">👤</div>
+        <h4>User / App</h4>
+        <p>Client request</p>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box highlight">
+        <div class="arch-box-icon">🛡️</div>
+        <h4>ClawShield Gateway</h4>
+        <p>Inspect · Enforce · Log</p>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-box-icon">🤖</div>
+        <h4>AI Agent (LLM)</h4>
+        <p>Process & respond</p>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-box-icon">🔌</div>
+        <h4>Tools / APIs</h4>
+        <p>External resources</p>
+      </div>
+    </div>
+
+    <div class="arch-components reveal">
+      <div class="arch-comp"><div class="arch-comp-dot"></div><span>Policy Engine</span></div>
+      <div class="arch-comp"><div class="arch-comp-dot"></div><span>Prompt Scanner</span></div>
+      <div class="arch-comp"><div class="arch-comp-dot"></div><span>Tool Validator</span></div>
+      <div class="arch-comp"><div class="arch-comp-dot"></div><span>Rate Limiter</span></div>
+      <div class="arch-comp"><div class="arch-comp-dot"></div><span>Audit Logger</span></div>
+      <div class="arch-comp"><div class="arch-comp-dot"></div><span>Auth / Identity</span></div>
+    </div>
+
+    <div class="arch-deploy reveal">
+      <div class="arch-deploy-item">Sidecar container</div>
+      <div class="arch-deploy-item">Cloud-hosted proxy</div>
+      <div class="arch-deploy-item">Embedded SDK</div>
+      <div class="arch-deploy-item">Any LLM provider</div>
+      <div class="arch-deploy-item">Local models supported</div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="comp-section" id="comparison">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Why ClawShield</div>
+      <h2 class="section-title">The Only Full-Stack Solution</h2>
+      <p class="section-subtitle">Existing tools address fragments of the problem. ClawShield is purpose-built as a complete trust layer for AI agents.</p>
+    </div>
+    <div class="comp-table-wrap reveal">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Runtime Protection</th>
+            <th>Prompt Guardrails</th>
+            <th>Tool Control</th>
+            <th>Identity & Audit</th>
+            <th>One-Click Publish</th>
+            <th>Agent-Native</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td>ClawShield</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-yes">Yes</td>
+          </tr>
+          <tr>
+            <td>Lakera</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-no">No</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+          </tr>
+          <tr>
+            <td>Prompt Armor</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+          </tr>
+          <tr>
+            <td>Protect AI</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-no">No</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+          </tr>
+          <tr>
+            <td>Lasso Security</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-no">No</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+          </tr>
+          <tr>
+            <td>Cloudflare AI GW</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-no">No</td>
+            <td class="cell-yes">Yes</td>
+            <td class="cell-no">No</td>
+            <td class="cell-partial">Partial</td>
+          </tr>
+          <tr>
+            <td>Custom / DIY</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-partial">Partial</td>
+            <td class="cell-no">No</td>
+            <td class="cell-no">No</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-label" style="justify-content:center;">Pricing</div>
+      <h2 class="section-title" style="margin-left:auto;margin-right:auto;">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle" style="margin-left:auto;margin-right:auto;">Start free. Scale as your agent fleet grows.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price">$0<span>/mo</span></div>
+        <div class="pricing-desc">Perfect for experimentation and small projects.</div>
+        <ul class="pricing-features">
+          <li>1 agent</li>
+          <li>1,000 calls/month</li>
+          <li>Basic guardrails</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#" class="pricing-btn outline">Get Started Free</a>
+      </div>
+      <div class="pricing-card featured reveal">
+        <div class="pricing-tier">Pro</div>
+        <div class="pricing-price">$99<span>/mo</span></div>
+        <div class="pricing-desc">For teams shipping agents to production.</div>
+        <ul class="pricing-features">
+          <li>10 agents</li>
+          <li>100K calls/month</li>
+          <li>Full guardrails + audit</li>
+          <li>Publishing features</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="pricing-btn primary">Start Pro Trial</a>
+      </div>
+      <div class="pricing-card reveal">
+        <div class="pricing-tier">Enterprise</div>
+        <div class="pricing-price">Custom</div>
+        <div class="pricing-desc">For organizations with advanced security needs.</div>
+        <ul class="pricing-features">
+          <li>Unlimited agents</li>
+          <li>On-prem deployment</li>
+          <li>SSO & RBAC</li>
+          <li>SLA & dedicated support</li>
+          <li>Custom policies</li>
+        </ul>
+        <a href="#" class="pricing-btn outline">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="cta-glow"></div>
+  <div class="container cta-content reveal">
+    <h2>Secure the AI Frontier</h2>
+    <p>Join the companies building trustworthy AI agents. Get started in minutes with our free tier.</p>
+    <div class="cta-buttons">
+      <a href="#" class="btn-primary">Start Free →</a>
+      <a href="#" class="btn-secondary">Schedule a Demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-left">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z" fill="none" stroke="#00D4AA" stroke-width="2.5"/>
+        <path d="M16 6L8 10v6c0 5 3.6 9.7 8 11.2V6z" fill="#00D4AA" opacity="0.3"/>
+        <path d="M16 6l8 4v6c0 5-3.6 9.7-8 11.2V6z" fill="#00D4AA" opacity="0.6"/>
+      </svg>
+      <span>CLAWSHIELD</span>
+    </div>
+    <div class="footer-right">&copy; 2026 ClawShield. The Trust Layer for AI Agents.</div>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Nav scroll effect
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
